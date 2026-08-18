@@ -3173,15 +3173,19 @@ namespace IDE.ui
 			String usingText = null;
 			defer delete usingText;
 
-			if (entry.mEntryType == "class" && entry.mDocumentation != null)
+			if ((entry.mDocumentation != null) &&
+				((entry.mEntryType == "class") ||
+				 (entry.mEntryType == "valuetype")))
 			{
-				int lineEnd = entry.mDocumentation.IndexOf('\n');
-				if (lineEnd == -1) lineEnd = entry.mDocumentation.Length;
+				int foundNewline = entry.mDocumentation.IndexOf('\n');
+				if (foundNewline == -1) foundNewline = entry.mDocumentation.Length;
+				int foundSlash = entry.mDocumentation.IndexOf('/');
+				if (foundSlash == -1) foundSlash = entry.mDocumentation.Length;
+				int lineEnd = Math.Min(foundNewline, foundSlash);
 				int start = entry.mDocumentation.IndexOf(' ') + 1;
 				var substr = entry.mDocumentation.Substring(
 					start,
 					entry.mDocumentation.LastIndexOf('.', lineEnd) - start);
-
 				usingText = new $"using { substr };";
 			}
 
@@ -3282,11 +3286,13 @@ namespace IDE.ui
 
 					String uts = scope $"{usingText}\n";
 					int prevCursorPosition = sewc.CursorTextPos;
+					var prevVertScroll = mTargetEditWidget.mVertPos.mDest;
 					sewc.CursorTextPos = 0;
 					sewc.PasteText(uts);
 
 					sewc.CursorTextPos = prevCursorPosition;
 					sewc.CurCursorTextPos += (int32)uts.Length;
+					mTargetEditWidget.VertScrollTo(prevVertScroll, true);
 
 					sewc.mData.mUndoManager.Add(undoBatchStart.mBatchEnd);
 				}
