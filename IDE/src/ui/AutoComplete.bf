@@ -3170,6 +3170,21 @@ namespace IDE.ui
 			}
 
 			var insertText = scope String(entry.mEntryInsert ?? entry.mEntryDisplay);
+			String usingText = null;
+			defer delete usingText;
+
+			if (entry.mEntryType == "class" && entry.mDocumentation != null)
+			{
+				int lineEnd = entry.mDocumentation.IndexOf('\n');
+				if (lineEnd == -1) lineEnd = entry.mDocumentation.Length;
+				int start = entry.mDocumentation.IndexOf(' ') + 1;
+				var substr = entry.mDocumentation.Substring(
+					start,
+					entry.mDocumentation.LastIndexOf('.', lineEnd) - start);
+
+				usingText = new $"using { substr };";
+			}
+
 			if ((!isExplicitInsert) && (insertText.Contains('\t')))
 			{
 				// Don't insert multi-line blocks unless we have an explicit insert request (click, tab, or enter)
@@ -3244,6 +3259,37 @@ namespace IDE.ui
 
 				if (implText != null)
 					InsertImplText(sewc, implText);
+			}
+
+			if (usingText != null)
+			{
+				bool usingStmtAlreadyExists = false;
+				for (int line = 0; line < sewc.GetLineCount(); line++)
+				{
+					String lineText = scope String();
+					sewc.GetLineText(line, lineText);
+					if (lineText == usingText)
+					{
+						usingStmtAlreadyExists = true;
+						break;
+					}
+				}
+
+				if (!usingStmtAlreadyExists)
+				{
+					UndoBatchStart undoBatchStart = new UndoBatchStart("import");
+					sewc.mData.mUndoManager.Add(undoBatchStart);
+
+					String uts = scope $"{usingText}\n";
+					int prevCursorPosition = sewc.CursorTextPos;
+					sewc.CursorTextPos = 0;
+					sewc.PasteText(uts);
+
+					sewc.CursorTextPos = prevCursorPosition;
+					sewc.CurCursorTextPos += (int32)uts.Length;
+
+					sewc.mData.mUndoManager.Add(undoBatchStart.mBatchEnd);
+				}
 			}
 
 			// Load persistent text positions back
