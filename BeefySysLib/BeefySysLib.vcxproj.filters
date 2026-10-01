@@ -1171,6 +1171,9 @@
     <ClInclude Include="third_party\libffi\x86_64-pc-cygwin\include\ffitarget.h">
       <Filter>src\third_party\libffi</Filter>
     </ClInclude>
+    <ClInclude Include="BeefySysLib.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="third_party\libffi\x86_64-pc-cygwin\src\x86\win64_intel.asm">

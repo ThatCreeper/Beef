@@ -11,6 +11,7 @@
     <LocalDebuggerCommand>$(SolutionDir)IDE\dist\BeefIDE_d.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)IDE\dist</LocalDebuggerWorkingDirectory>
     <LocalDebuggerEnvironment>_NO_DEBUG_HEAP=1</LocalDebuggerEnvironment>
+    <LocalDebuggerCommandArgumentsHistory>-proddir=c:\beef\ide\mintest|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(SolutionDir)IDE\dist\BeefIDE.exe</LocalDebuggerCommand>
@@ -18,6 +19,7 @@
     <LocalDebuggerCommandArguments>-proddir=c:\beef\IDE\mintest</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)IDE\dist</LocalDebuggerWorkingDirectory>
     <LocalDebuggerEnvironment>_NO_DEBUG_HEAP=1</LocalDebuggerEnvironment>
+    <LocalDebuggerCommandArgumentsHistory>-proddir=c:\beef\IDE\mintest|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>
