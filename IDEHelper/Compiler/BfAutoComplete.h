@@ -227,7 +227,7 @@ public:
 	void AddMethod(BfTypeInstance* typeInstance, BfMethodDef* methodDef, BfMethodInstance* methodInstance, BfMethodDeclaration* methodDecl, const StringImpl& methodName, const StringImpl& filter);
 	void AddField(BfTypeInstance* typeInst, BfFieldDef* fieldDef, BfFieldInstance* fieldInstance, const StringImpl& filter);
 	void AddProp(BfTypeInstance* typeInst, BfPropertyDef* propDef, const StringImpl& filter);
-	void AddTypeDef(BfTypeDef* typeDef, const StringImpl& filter, bool onlyAttribute = false);
+	void AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const StringImpl& filter, bool onlyAttribute = false, bool isInImportedNamespace = true);
 	void AddInnerTypes(BfTypeInstance* typeInst, const StringImpl& filter, BfTypeInstance* startType, bool allowProtected, bool allowPrivate);
 	void AddCurrentTypes(BfTypeInstance* typeInst, const StringImpl& filter, bool allowProtected, bool allowPrivate, bool onlyAttribute);
 	void AddTypeMembers(BfTypeInstance* typeInst, bool addStatic, bool addNonStatic, const StringImpl& filter, BfTypeInstance* startType, bool allowInterfaces, bool allowImplicitThis, bool checkOuterType);

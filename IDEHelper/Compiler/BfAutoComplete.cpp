@@ -615,7 +615,8 @@ void BfAutoComplete::AddMethod(BfTypeInstance* typeInstance, BfMethodDef* method
 	}
 }
 
-void BfAutoComplete::AddTypeDef(BfTypeDef* typeDef, const StringImpl& filter, bool onlyAttribute)
+// refNode is currently allowed to be null when isInImportedNamespace = true
+void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const StringImpl& filter, bool onlyAttribute, bool isInImportedNamespace)
 {
 	BF_ASSERT(typeDef->mDefState != BfTypeDef::DefState_Emitted);
 
@@ -660,12 +661,42 @@ void BfAutoComplete::AddTypeDef(BfTypeDef* typeDef, const StringImpl& filter, bo
 	}
 
 	AutoCompleteEntry* entryAdded = NULL;
-	if (typeDef->mTypeCode == BfTypeCode_Object)
-		entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
-	else if (typeDef->mTypeCode == BfTypeCode_Interface)
-		entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
+	// TODO: This should also be a user option
+	if (isInImportedNamespace)
+	{
+		if (typeDef->mTypeCode == BfTypeCode_Object)
+			entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
+		else if (typeDef->mTypeCode == BfTypeCode_Interface)
+			entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
+		else
+			entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
+	}
 	else
-		entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
+	{
+		// When the namespace is not already imported with using, we need to add the using statement
+		// Because it seems unintrusive, this is done using fixit commands.
+		//
+		// This fixit is in two parts. The first part adds the actual completion and has focus change set.
+		// The second part adds the using statement and has the '.' marking no focus change.
+		//
+		// This big comment is here because this code is very messy.
+		// The upside is that this requires very little state in the IDE.
+		auto parserData = refNode->GetParserData();
+		String namespaceStr = typeDef->mNamespace.ToString();
+
+		BfUsingFinder usingFinder;
+		usingFinder.mFromIdx = refNode->mSrcStart;
+		usingFinder.VisitMembers(refNode->GetSourceData()->mRootNode);
+		AddEntry(AutoCompleteEntry("class", StrFormat("using %s;\t.using|%s|%d||using %s;", namespaceStr.c_str(), parserData->mFileName.c_str(),
+			usingFinder.mLastIdx, namespaceStr.c_str()).c_str()));
+
+		//if (typeDef->mTypeCode == BfTypeCode_Object)
+		//	entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
+		//else if (typeDef->mTypeCode == BfTypeCode_Interface)
+		//	entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
+		//else
+		//	entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
+	}
 
 	if (entryAdded != NULL)
 	{
@@ -749,7 +780,7 @@ void BfAutoComplete::AddInnerTypes(BfTypeInstance* typeInst, const StringImpl& f
 			useInnerType = mModule->GetCombinedPartialTypeDef(useInnerType);
 
 		if (CheckProtection(useInnerType->mProtection, useInnerType, allowProtected, allowPrivate))
-			AddTypeDef(useInnerType, filter);
+			AddTypeDef(nullptr, useInnerType, filter);
 	}
 
 	allowPrivate = false;
@@ -760,7 +791,7 @@ void BfAutoComplete::AddInnerTypes(BfTypeInstance* typeInst, const StringImpl& f
 void BfAutoComplete::AddCurrentTypes(BfTypeInstance* typeInst, const StringImpl& filter, bool allowProtected, bool allowPrivate, bool onlyAttribute)
 {
 	if (typeInst != mModule->mCurTypeInstance)
-		AddTypeDef(typeInst->mTypeDef->GetDefinition(), filter, onlyAttribute);
+		AddTypeDef(nullptr, typeInst->mTypeDef->GetDefinition(), filter, onlyAttribute);
 
 	auto typeDef = typeInst->mTypeDef->GetDefinition();
 	for (auto nestedTypeDef : typeDef->mNestedTypes)
@@ -773,7 +804,7 @@ void BfAutoComplete::AddCurrentTypes(BfTypeInstance* typeInst, const StringImpl&
 		}
 
 	 	if (CheckProtection(nestedTypeDef->mProtection, nestedTypeDef, allowProtected, allowPrivate))
-	 		AddTypeDef(nestedTypeDef, filter, onlyAttribute);
+	 		AddTypeDef(nullptr, nestedTypeDef, filter, onlyAttribute);
 	}
 
 	auto outerType = mModule->GetOuterType(typeInst);
@@ -1574,7 +1605,7 @@ void BfAutoComplete::AddTopLevelTypes(BfAstNode* identifierNode, bool onlyAttrib
 			{
 				if (!mModule->mCurTypeInstance->IsTypeMemberAccessible(innerTypeDef, activeTypeDef))
 					continue;
-				AddTypeDef(innerTypeDef, filter, onlyAttribute);
+				AddTypeDef(identifierNode, innerTypeDef, filter, onlyAttribute);
 			}
 		}
 
@@ -1590,15 +1621,14 @@ void BfAutoComplete::AddTopLevelTypes(BfAstNode* identifierNode, bool onlyAttrib
 				bool matches = false;
 				if (typeDef->mOuterType == NULL)
 				{
-					if ((mShouldAutoCompleteIgnoreNamespaces) ||
-						((typeDef->mNamespace.IsEmpty()) ||
+					if (((typeDef->mNamespace.IsEmpty()) ||
 						(namespaceSearch.Contains(typeDef->mNamespace))))
 						matches = true;
 				}
 
-				if (matches)
+				if (matches || mShouldAutoCompleteIgnoreNamespaces)
 				{
-					AddTypeDef(typeDef, filter, onlyAttribute);
+					AddTypeDef(identifierNode, typeDef, filter, onlyAttribute, matches);
 				}
 			}
 		}
@@ -1626,7 +1656,7 @@ void BfAutoComplete::AddTopLevelTypes(BfAstNode* identifierNode, bool onlyAttrib
 
 				if (matches)
 				{
-					AddTypeDef(typeDef, filter, onlyAttribute);
+					AddTypeDef(identifierNode, typeDef, filter, onlyAttribute);
 				}
 			}
 		}
@@ -2214,7 +2244,7 @@ bool BfAutoComplete::CheckMemberReference(BfAstNode* target, BfAstNode* dotToken
 									}
 								}
 								else
-									AddTypeDef(typeDef, filter, onlyAttribute);
+									AddTypeDef(target, typeDef, filter, onlyAttribute);
 							}
 						}
 					}
