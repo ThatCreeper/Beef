@@ -1628,11 +1628,11 @@ void BfAutoComplete::AddTopLevelTypes(BfAstNode* identifierNode, bool onlyAttrib
 					if (((typeDef->mNamespace.IsEmpty()) ||
 						(namespaceSearch.Contains(typeDef->mNamespace))))
 						matches = true;
-				}
 
-				if (matches || mShouldAutoCompleteIgnoreNamespaces)
-				{
-					AddTypeDef(identifierNode, typeDef, filter, onlyAttribute, matches);
+					if (matches || mShouldAutoCompleteIgnoreNamespaces)
+					{
+						AddTypeDef(identifierNode, typeDef, filter, onlyAttribute, matches);
+					}
 				}
 			}
 		}
