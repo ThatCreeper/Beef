@@ -763,6 +763,7 @@ namespace IDE.ui
 			resolveParams.mIsUserRequested = options.HasFlag(.UserRequested);
 			resolveParams.mDoFuzzyAutoComplete = gApp.mSettings.mEditorSettings.mFuzzyAutoComplete;
 			resolveParams.mShouldAutoCompleteIgnoreNamespaces = gApp.mSettings.mEditorSettings.mShouldAutoCompleteIgnoreNamespaces;
+			resolveParams.mShouldAutoCompleteAddUsing = gApp.mSettings.mEditorSettings.mShouldAutoCompleteAddUsing;
 			Classify(.Autocomplete, resolveParams);
 			if (!resolveParams.mInDeferredList)
 				delete resolveParams;
@@ -2218,8 +2219,9 @@ namespace IDE.ui
 
 			bool doFuzzyAutoComplete = resolveParams?.mDoFuzzyAutoComplete ?? false;
 			bool shouldAutoCompleteIgnoreNamespaces = resolveParams?.mShouldAutoCompleteIgnoreNamespaces ?? false;
+			bool shouldAutoCompleteAddUsing = resolveParams?.mShouldAutoCompleteAddUsing ?? false;
 
-			var resolvePassData = parser.CreateResolvePassData(resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces);
+			var resolvePassData = parser.CreateResolvePassData(resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces, shouldAutoCompleteAddUsing);
 			if (resolveParams != null)
 			{
 			    if (resolveParams.mLocalId != -1)

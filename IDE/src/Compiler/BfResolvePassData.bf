@@ -105,10 +105,10 @@ namespace IDE.Compiler
 			BfResolvePassData_SetDocumentationRequest(mNativeResolvePassData, entryName);
 		}
 
-        public static BfResolvePassData Create(ResolveType resolveType = ResolveType.Autocomplete, bool doFuzzyAutoComplete = false, bool shouldAutoCompleteIgnoreNamespaces = false)
+        public static BfResolvePassData Create(ResolveType resolveType = ResolveType.Autocomplete, bool doFuzzyAutoComplete = false, bool shouldAutoCompleteIgnoreNamespaces = false, bool shouldAutoCompleteAddUsing = true)
         {
             var resolvePassData = new BfResolvePassData();
-            resolvePassData.mNativeResolvePassData = BfParser.[Friend]BfParser_CreateResolvePassData(null, (int32)resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces);
+            resolvePassData.mNativeResolvePassData = BfParser.[Friend]BfParser_CreateResolvePassData(null, (int32)resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces, shouldAutoCompleteAddUsing);
             return resolvePassData;
         }
 

@@ -730,6 +730,7 @@ namespace IDE
 			public bool mAutoCompleteShowDocumentation = true;
 			public bool mFuzzyAutoComplete = false;
 			public bool mShouldAutoCompleteIgnoreNamespaces = false;
+			public bool mShouldAutoCompleteAddUsing = true;
 			public bool mShowLocatorAnim = true;
 			public bool mHiliteCursorReferences = true;
 			public bool mDebugMultiCursor = false;
@@ -766,6 +767,7 @@ namespace IDE
 				sd.Add("AutoCompleteShowDocumentation", mAutoCompleteShowDocumentation);
 				sd.Add("FuzzyAutoComplete", mFuzzyAutoComplete);
 				sd.Add("ShouldAutoCompleteIgnoreNamespaces", mShouldAutoCompleteIgnoreNamespaces);
+				sd.Add("ShouldAutoCompleteAddUsing", mShouldAutoCompleteAddUsing);
 				sd.Add("ShowLocatorAnim", mShowLocatorAnim);
 				sd.Add("HiliteCursorReferences", mHiliteCursorReferences);
 				sd.Add("HiliteCurrentLine", mHiliteCurrentLine);

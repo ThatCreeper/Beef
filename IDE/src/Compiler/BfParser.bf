@@ -106,6 +106,7 @@ namespace IDE.Compiler
 		public bool mIsUserRequested;
 		public bool mDoFuzzyAutoComplete;
 		public bool mShouldAutoCompleteIgnoreNamespaces;
+		public bool mShouldAutoCompleteAddUsing;
 		public Stopwatch mStopwatch ~ delete _;
 		public ProfileInstance mProfileInstance ~ _.Dispose();
 
@@ -169,7 +170,7 @@ namespace IDE.Compiler
         static extern char8* BfParser_GetDebugExpressionAt(void* bfParser, int32 cursorIdx);
 
         [CallingConvention(.Stdcall), CLink]
-        static extern void* BfParser_CreateResolvePassData(void* bfSystem, int32 resolveType, bool doFuzzyAutoComplete, bool shouldAutoCompleteIgnoreNamespaces);
+        static extern void* BfParser_CreateResolvePassData(void* bfSystem, int32 resolveType, bool doFuzzyAutoComplete, bool shouldAutoCompleteIgnoreNamespaces, bool shouldAutoCompleteAddUsing);
 
         [CallingConvention(.Stdcall), CLink]
         static extern bool BfParser_BuildDefs(void* bfParser, void* bfPassInstance, void* bfResolvePassData, bool fullRefresh);
@@ -329,10 +330,10 @@ namespace IDE.Compiler
             BfParser_GenerateAutoCompletionFrom(mNativeBfParser, srcPosition);
         }
 
-        public BfResolvePassData CreateResolvePassData(ResolveType resolveType = ResolveType.Autocomplete, bool doFuzzyAutoComplete = false, bool shouldAutoCompleteIgnoreNamespaces = false)
+        public BfResolvePassData CreateResolvePassData(ResolveType resolveType = ResolveType.Autocomplete, bool doFuzzyAutoComplete = false, bool shouldAutoCompleteIgnoreNamespaces = false, bool shouldAutoCompleteAddUsing = true)
         {
             var resolvePassData = new BfResolvePassData();
-            resolvePassData.mNativeResolvePassData = BfParser_CreateResolvePassData(mNativeBfParser, (int32)resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces);
+            resolvePassData.mNativeResolvePassData = BfParser_CreateResolvePassData(mNativeBfParser, (int32)resolveType, doFuzzyAutoComplete, shouldAutoCompleteIgnoreNamespaces, shouldAutoCompleteAddUsing);
             return resolvePassData;
         }
 

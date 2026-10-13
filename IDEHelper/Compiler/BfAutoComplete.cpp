@@ -26,6 +26,7 @@ AutoCompleteBase::AutoCompleteBase()
 	mInsertStartIdx = -1;
 	mInsertEndIdx = -1;
 	mShouldAutoCompleteIgnoreNamespaces = false;
+	mShouldAutoCompleteAddUsing = true;
 }
 
 AutoCompleteBase::~AutoCompleteBase()
@@ -185,7 +186,7 @@ void AutoCompleteBase::Clear()
 
 //////////////////////////////////////////////////////////////////////////
 
-BfAutoComplete::BfAutoComplete(BfResolveType resolveType, bool doFuzzyAutoComplete, bool shouldAutoCompleteIgnoreNamespaces)
+BfAutoComplete::BfAutoComplete(BfResolveType resolveType, bool doFuzzyAutoComplete, bool shouldAutoCompleteIgnoreNamespaces, bool shouldAutoCompleteAddUsing)
 {
 	mResolveType = resolveType;
 	mModule = NULL;
@@ -204,6 +205,7 @@ BfAutoComplete::BfAutoComplete(BfResolveType resolveType, bool doFuzzyAutoComple
 
 	mDoFuzzyAutoComplete = doFuzzyAutoComplete;
 	mShouldAutoCompleteIgnoreNamespaces = shouldAutoCompleteIgnoreNamespaces;
+	mShouldAutoCompleteAddUsing = shouldAutoCompleteAddUsing;
 
 	mGetDefinitionNode = NULL;
 	mShowAttributeProperties = NULL;
@@ -661,8 +663,7 @@ void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const St
 	}
 
 	AutoCompleteEntry* entryAdded = NULL;
-	// TODO: This should also be a user option
-	if (isInImportedNamespace)
+	if (refNode == NULL || isInImportedNamespace || !mShouldAutoCompleteAddUsing)
 	{
 		if (typeDef->mTypeCode == BfTypeCode_Object)
 			entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
@@ -673,7 +674,7 @@ void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const St
 	}
 	else
 	{
-		// When the namespace is not already imported with using, we need to add the using statement
+		// When the namespace is not already imported with using, we need to add the using statement.
 		// Because it seems unintrusive, this is done using fixit commands.
 		//
 		// This fixit is in two parts. The first part adds the actual completion and has focus change set.
