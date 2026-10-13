@@ -663,44 +663,12 @@ void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const St
 	}
 
 	AutoCompleteEntry* entryAdded = NULL;
-	if (refNode == NULL || isInImportedNamespace || !mShouldAutoCompleteAddUsing)
-	{
-		if (typeDef->mTypeCode == BfTypeCode_Object)
-			entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
-		else if (typeDef->mTypeCode == BfTypeCode_Interface)
-			entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
-		else
-			entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
-	}
+	if (typeDef->mTypeCode == BfTypeCode_Object)
+		entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
+	else if (typeDef->mTypeCode == BfTypeCode_Interface)
+		entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
 	else
-	{
-		// When the namespace is not already imported with using, we need to add the using statement.
-		// Because it seems unintrusive, this is done using fixit commands.
-		//
-		// This fixit is in two parts. The first part adds the actual completion and has focus change set.
-		// The second part adds the using statement and has the '.' marking no focus change.
-		//
-		// This big comment is here because this code is very messy.
-		// The upside is that this requires very little state in the IDE.
-		auto parserData = refNode->GetParserData();
-		String namespaceStr = typeDef->mNamespace.ToString();
-
-		BfUsingFinder usingFinder;
-		usingFinder.mFromIdx = refNode->mSrcStart;
-		usingFinder.VisitMembers(refNode->GetSourceData()->mRootNode);
-
-		String fixitStr = StrFormat("%s\ttypedef|%s|%d-%d|%s\x01.using|%s|%d||using %s;",
-			name.c_str(),
-			parserData->mFileName.c_str(), refNode->mSrcStart, refNode->mSrcEnd - refNode->mSrcStart, name.c_str(),
-			parserData->mFileName.c_str(), usingFinder.mLastIdx, namespaceStr.c_str());
-		
-		if (typeDef->mTypeCode == BfTypeCode_Object)
-			entryAdded = AddEntry(AutoCompleteEntry("class+fixit", fixitStr), filter);
-		else if (typeDef->mTypeCode == BfTypeCode_Interface)
-			entryAdded = AddEntry(AutoCompleteEntry("interface+fixit", fixitStr), filter);
-		else
-			entryAdded = AddEntry(AutoCompleteEntry("valuetype+fixit", fixitStr), filter);
-	}
+		entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
 
 	if (entryAdded != NULL)
 	{
@@ -721,6 +689,37 @@ void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const St
 				typeDef->mTypeDeclaration->mDocumentation->GetDocString(str);
 			}
 			entryAdded->mDocumentation = mAlloc.AllocString(str);
+		}
+
+		if ((!isInImportedNamespace) &&
+			(refNode != NULL) &&
+			(mShouldAutoCompleteAddUsing) &&
+			(strstr(entryAdded->mEntryType, "fixit") == NULL))
+		{
+			// When the namespace is not already imported with using, we need to add the using statement.
+			// Because it seems unintrusive, this is done using fixit commands.
+			//
+			// This fixit is in two parts. The first part adds the actual completion and has focus change set.
+			// The second part adds the using statement and has the '.' marking no focus change.
+			auto parserData = refNode->GetParserData();
+			String namespaceStr = typeDef->mNamespace.ToString();
+
+			BfUsingFinder usingFinder;
+			usingFinder.mFromIdx = refNode->mSrcStart;
+			usingFinder.VisitMembers( refNode->GetSourceData()->mRootNode );
+
+			String fixitStr = StrFormat("%s\ttypedef|%s|%d-%d|%s\x01.using|%s|%d||using %s;",
+										name.c_str(),
+										parserData->mFileName.c_str(), refNode->mSrcStart, refNode->mSrcEnd - refNode->mSrcStart, name.c_str(),
+										parserData->mFileName.c_str(), usingFinder.mLastIdx, namespaceStr.c_str());
+
+			if (typeDef->mTypeCode == BfTypeCode_Object)
+				entryAdded->mEntryType = "class+fixit";
+			else if (typeDef->mTypeCode == BfTypeCode_Interface)
+				entryAdded->mEntryType = "interface+fixit";
+			else
+				entryAdded->mEntryType = "valuetype+fixit";
+			entryAdded->mDisplay = mAlloc.AllocString(fixitStr);
 		}
 	}
 }
