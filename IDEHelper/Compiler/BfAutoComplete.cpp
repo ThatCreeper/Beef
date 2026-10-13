@@ -687,15 +687,18 @@ void BfAutoComplete::AddTypeDef(BfAstNode* refNode, BfTypeDef* typeDef, const St
 		BfUsingFinder usingFinder;
 		usingFinder.mFromIdx = refNode->mSrcStart;
 		usingFinder.VisitMembers(refNode->GetSourceData()->mRootNode);
-		AddEntry(AutoCompleteEntry("class", StrFormat("using %s;\t.using|%s|%d||using %s;", namespaceStr.c_str(), parserData->mFileName.c_str(),
-			usingFinder.mLastIdx, namespaceStr.c_str()).c_str()));
 
-		//if (typeDef->mTypeCode == BfTypeCode_Object)
-		//	entryAdded = AddEntry(AutoCompleteEntry("class", name), filter);
-		//else if (typeDef->mTypeCode == BfTypeCode_Interface)
-		//	entryAdded = AddEntry(AutoCompleteEntry("interface", name), filter);
-		//else
-		//	entryAdded = AddEntry(AutoCompleteEntry("valuetype", name), filter);
+		String fixitStr = StrFormat("%s\ttypedef|%s|%d-%d|%s\x01.using|%s|%d||using %s;",
+			name.c_str(),
+			parserData->mFileName.c_str(), refNode->mSrcStart, refNode->mSrcEnd - refNode->mSrcStart, name.c_str(),
+			parserData->mFileName.c_str(), usingFinder.mLastIdx, namespaceStr.c_str());
+		
+		if (typeDef->mTypeCode == BfTypeCode_Object)
+			entryAdded = AddEntry(AutoCompleteEntry("class+fixit", fixitStr), filter);
+		else if (typeDef->mTypeCode == BfTypeCode_Interface)
+			entryAdded = AddEntry(AutoCompleteEntry("interface+fixit", fixitStr), filter);
+		else
+			entryAdded = AddEntry(AutoCompleteEntry("valuetype+fixit", fixitStr), filter);
 	}
 
 	if (entryAdded != NULL)

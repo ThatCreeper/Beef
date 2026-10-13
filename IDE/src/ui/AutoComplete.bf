@@ -2532,11 +2532,11 @@ namespace IDE.ui
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.Property);
                 case "namespace":
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.Namespace);
-                case "class":
+                case "class", "class+fixit":
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.Type_Class);
-                case "interface":
+                case "interface", "interface+fixit":
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.Interface);
-                case "valuetype":
+                case "valuetype", "valuetype+fixit":
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.Type_ValueType);
                 case "object":
                     entryIcon = DarkTheme.sDarkTheme.GetImage(.IconObject);
@@ -2628,7 +2628,7 @@ namespace IDE.ui
                     {
 						if (!mInvokeOnly)
 						{
-							mIsFixit |= entryType == "fixit";
+							mIsFixit |= entryType.EndsWith("fixit");
                             mAutoCompleteListWidget.AddEntry(entryType, entryDisplay, entryIcon, entryInsert, documentation, matchIndices);
 						}
                     }                        
@@ -3160,7 +3160,7 @@ namespace IDE.ui
 			if (insertStr != null)
 				insertStr.Append(entry.mEntryInsert ?? entry.mEntryDisplay);
 
-			if (entry.mEntryType == "fixit")
+			if (entry.mEntryType.EndsWith("fixit"))
 			{
 				if (insertType != null)
 					insertType.Append(entry.mEntryType);
